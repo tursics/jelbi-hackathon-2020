@@ -21,16 +21,87 @@ var map = new mapboxgl.Map({
 
 //-----------------------------------------------------------------------
 
-map.on('load', function () {
-	'use strict';
+var rotateCameraOnIdle = false;
 
-	map.addControl(new mapboxgl.FullscreenControl());
-	map.addControl(new mapboxgl.NavigationControl());
+function rotateCamera(timestamp) {
+	// clamp the rotation between 0 -360 degrees
+	// Divide timestamp by 100 to slow rotation to ~10 degrees / sec
+	map.rotateTo((timestamp / 100) % 360, { duration: 0 });
+
+	if (rotateCameraOnIdle) {
+		requestAnimationFrame(rotateCamera);
+	}
+}
+
+function startRotateCamera(event) {
+	if (rotateCameraOnIdle) {
+		rotateCameraOnIdle = false;
+	} else {
+		rotateCameraOnIdle = true;
+		rotateCamera(0);
+	}
+}
+
+//-----------------------------------------------------------------------
+/* Idea from Stack Overflow https://stackoverflow.com/a/51683226  */
+class MapboxGLButtonControl {
+	constructor({
+		className = '',
+		title = '',
+		html = '',
+		eventHandler = evtHndlr
+	}) {
+		this._className = className;
+		this._title = title;
+		this._html = html;
+		this._eventHandler = eventHandler;
+	}
+
+	onAdd(map) {
+		this._btn = document.createElement("button");
+		this._btn.className = "mapboxgl-ctrl-icon" + " " + this._className;
+		this._btn.type = "button";
+		this._btn.title = this._title;
+		this._btn.innerHTML = this._html;
+		this._btn.onclick = this._eventHandler;
+
+		this._container = document.createElement("div");
+		this._container.className = "mapboxgl-ctrl-group mapboxgl-ctrl";
+		this._container.appendChild(this._btn);
+
+		return this._container;
+	}
+
+	onRemove() {
+		this._container.parentNode.removeChild(this._container);
+		this._map = undefined;
+	}
+}
+
+//-----------------------------------------------------------------------
+
+function addMapControls() {
+	map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 	map.addControl(new mapboxgl.GeolocateControl({
 		positionOptions: {
 			enableHighAccuracy: true
 		}
-	}));
+	}), 'top-left');
+
+	map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Automatisch drehen',
+		html: '<i class="fas fa-sync-alt fa-lg"></i>',
+		eventHandler: startRotateCamera
+	}), 'top-right');
+}
+
+//-----------------------------------------------------------------------
+
+map.on('load', function () {
+	'use strict';
+
+	addMapControls();
 });
 
 //-----------------------------------------------------------------------

@@ -2,6 +2,8 @@
 
 This project is a tool to find a matching spot for a new BVG Jelbi Station.
 
+Find a running prototype here: https://tursics.github.io/jelbi-hackathon-2020/
+
 ## Timeline
 
 This repository takes part of the BVG Hackathon
