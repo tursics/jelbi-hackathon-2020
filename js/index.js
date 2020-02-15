@@ -7,10 +7,12 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidHVyc2ljcyIsImEiOiJjajBoN3hzZGwwMDJsMnF0YW96Y
 
 //-----------------------------------------------------------------------
 
+var mapCenter = [13.38523, 52.45171]; // hackathon location
+
 var map = new mapboxgl.Map({
 	container: 'map',
 	style: 'mapbox://styles/mapbox/dark-v10', //streets-v11 outdoors-v11 light-v10 dark-v10 satellite-v9 satellite-streets-v11
-	center: [13.38523, 52.45171], // hackathon location
+	center: mapCenter,
 	minZoom: 10,
 	maxZoom: 19,
 	zoom: 17,
@@ -18,6 +20,7 @@ var map = new mapboxgl.Map({
 	hash: true,
 //	maxBounds: [[6.4, 51.22], [6.8, 51.46]]
 });
+var canvas = map.getCanvasContainer();
 
 //-----------------------------------------------------------------------
 
@@ -151,11 +154,91 @@ function add3dBuilding() {
 
 //-----------------------------------------------------------------------
 
+var geojsonPoint = {
+	'type': 'FeatureCollection',
+	'features': [
+		{
+			'type': 'Feature',
+			'geometry': {
+				'type': 'Point',
+				'coordinates': mapCenter
+			}
+		}
+	]
+};
+
+function addDraggablePoint() {
+	map.addSource('point', {
+		'type': 'geojson',
+		'data': geojsonPoint
+	});
+
+	map.addLayer({
+		'id': 'point',
+		'type': 'circle',
+		'source': 'point',
+		'paint': {
+			'circle-radius': 10,
+			'circle-color': '#3887be'
+		}
+	});
+
+	function onMove(e) {
+		var coords = e.lngLat;
+
+		canvas.style.cursor = 'grabbing';
+
+		geojsonPoint.features[0].geometry.coordinates = [coords.lng, coords.lat];
+		map.getSource('point').setData(geojsonPoint);
+	}
+
+	function onUp(e) {
+		var coords = e.lngLat;
+
+		console.log('Longitude: ' + coords.lng + '<br />Latitude: ' + coords.lat);
+		canvas.style.cursor = '';
+
+		map.off('mousemove', onMove);
+		map.off('touchmove', onMove);
+	}
+
+	map.on('mouseenter', 'point', function() {
+		map.setPaintProperty('point', 'circle-color', '#3bb2d0');
+		canvas.style.cursor = 'move';
+	});
+
+	map.on('mouseleave', 'point', function() {
+		map.setPaintProperty('point', 'circle-color', '#3887be');
+		canvas.style.cursor = '';
+	});
+
+	map.on('mousedown', 'point', function(e) {
+		e.preventDefault();
+
+		canvas.style.cursor = 'grab';
+
+		map.on('mousemove', onMove);
+		map.once('mouseup', onUp);
+	});
+
+	map.on('touchstart', 'point', function(e) {
+		if (e.points.length !== 1) return;
+
+		e.preventDefault();
+
+		map.on('touchmove', onMove);
+		map.once('touchend', onUp);
+	});
+}
+
+//-----------------------------------------------------------------------
+
 map.on('load', function () {
 	'use strict';
 
 	addMapControls();
 	add3dBuilding();
+	addDraggablePoint();
 });
 
 //-----------------------------------------------------------------------
