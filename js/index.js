@@ -37,6 +37,8 @@ function startRotateCamera(event) {
 	if (rotateCameraOnIdle) {
 		rotateCameraOnIdle = false;
 	} else {
+		removeLabels();
+
 		rotateCameraOnIdle = true;
 		rotateCamera(0);
 	}
@@ -98,10 +100,62 @@ function addMapControls() {
 
 //-----------------------------------------------------------------------
 
+function removeLabels() {
+	var layers = map.getStyle().layers;
+
+	for (var i = 0; i < layers.length; i++) {
+		if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+			// remove text labels
+			map.removeLayer(layers[i].id);
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+function add3dBuilding() {
+	map.addLayer({
+		'id': '3d-buildings',
+		'source': 'composite',
+		'source-layer': 'building',
+		'filter': ['==', 'extrude', 'true'],
+		'type': 'fill-extrusion',
+		'minzoom': 15,
+		'paint': {
+			'fill-extrusion-color': '#ff0',
+
+			// use an 'interpolate' expression to add a smooth transition effect to the
+			// buildings as the user zooms in
+			'fill-extrusion-height': [
+				'interpolate',
+				['linear'],
+				['zoom'],
+				15,
+				0,
+				15.05,
+				['get', 'height']
+			],
+			'fill-extrusion-base': [
+				'interpolate',
+				['linear'],
+				['zoom'],
+				15,
+				0,
+				15.05,
+				['get', 'min_height']
+			],
+			'fill-extrusion-opacity': 0.6
+		}
+	});
+}
+
+//-----------------------------------------------------------------------
+
 map.on('load', function () {
 	'use strict';
 
 	addMapControls();
+	add3dBuilding();
 });
 
 //-----------------------------------------------------------------------
