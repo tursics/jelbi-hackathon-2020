@@ -9,7 +9,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoidHVyc2ljcyIsImEiOiJjajBoN3hzZGwwMDJsMnF0YW96Y
 
 var map = new mapboxgl.Map({
 	container: 'map',
-	style: 'mapbox://styles/mapbox/outdoors-v11', //streets-v11 outdoors-v11 satellite-v11 satellite-streets-v11
+	style: 'mapbox://styles/mapbox/dark-v10', //streets-v11 outdoors-v11 light-v10 dark-v10 satellite-v9 satellite-streets-v11
 	center: [13.38523, 52.45171], // hackathon location
 	minZoom: 10,
 	maxZoom: 19,
