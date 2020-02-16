@@ -127,7 +127,7 @@ function addMapControls() {
 		title: 'Ein Bärlkönig einfügen',
 		html: '<img src="assets/share-bus.png">',
 		className: 'nav-button',
-		eventHandler: setObjectCar_rect
+		eventHandler: setObjectBus
 	}), 'top-right');
 }
 
@@ -308,6 +308,12 @@ function initSourcesAndLayers() {
 //-----------------------------------------------------------------------
 
 function pushAreaObject(name, rect) {
+	var x = Math.abs(rect.left - rect.right);
+	var y = Math.abs(rect.top - rect.bottom);
+	var min = Math.min(x, y);
+	var idx = areaPolygon.features.length;
+	var imageName = name + idx;
+
 	areaPolygon.features.push({
 		'type': 'Feature',
 		'geometry': {
@@ -316,7 +322,34 @@ function pushAreaObject(name, rect) {
 		},
 		'properties': {
 			'name': name,
-			'baseRect': rect
+			'imageName': imageName,
+			'baseRect': rect,
+			'imageRect': {
+				top: rect.top - (y - min / 2) / 2,
+				left: rect.left + (x - min / 2) / 2,
+				right: rect.right - (x - min / 2) / 2,
+				bottom: rect.bottom + (y - min / 2) / 2
+			}
+		}
+	});
+
+	map.addSource(imageName, {
+		type: 'image',
+		url: 'assets/share-' + name + '.png',
+		coordinates: [
+			[0, 0],
+			[0, 0],
+			[0, 0],
+			[0, 0]
+		]
+	});
+
+	map.addLayer({
+		id: imageName + '-layer',
+		'type': 'raster',
+		'source': imageName,
+		'paint': {
+			'raster-fade-duration': 0
 		}
 	});
 }
@@ -326,7 +359,9 @@ function pushAreaObject(name, rect) {
 function onMoveAreaObject(e) {
 	var coords = e.lngLat,
 		idx = areaPolygon.features.length - 1,
-		rect = areaPolygon.features[idx].properties.baseRect;
+		rect = areaPolygon.features[idx].properties.baseRect,
+		imageRect = areaPolygon.features[idx].properties.imageRect,
+		imageName = areaPolygon.features[idx].properties.imageName;
 
 	canvas.style.cursor = 'grabbing';
 
@@ -338,15 +373,42 @@ function onMoveAreaObject(e) {
 		[coords.lng + rect.left, coords.lat + rect.top]
 		]];
 	map.getSource('area').setData(areaPolygon);
+
+	var coordinates = map.getSource(imageName).coordinates;
+	coordinates = [
+		[coords.lng + imageRect.left, coords.lat + imageRect.top],
+		[coords.lng + imageRect.left, coords.lat + imageRect.bottom],
+		[coords.lng + imageRect.right, coords.lat + imageRect.bottom],
+		[coords.lng + imageRect.right, coords.lat + imageRect.top],
+		];
+	map.getSource(imageName).setCoordinates(coordinates);
 }
 
 //-----------------------------------------------------------------------
 
-function setObjectCar_rect() {
+function onMouseEnterAreaObject() {
+	map.setPaintProperty('area', 'circle-color', '#3bb2d0');
+	canvas.style.cursor = 'move';
+}
+
+//-----------------------------------------------------------------------
+
+function onMouseLeaveAreaObject() {
+	map.setPaintProperty('area', 'circle-color', '#3887be');
+	canvas.style.cursor = '';
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectCar() {
 	function onClick(e) {
 		canvas.style.cursor = '';
+
 		map.off('mousemove', onMoveAreaObject);
 		map.off('click', onClick);
+
+//		map.on('mouseenter', 'area', onMouseEnterAreaObject);
+//		map.on('mouseleave', 'area', onMouseLeaveAreaObject);
 	}
 
 	pushAreaObject('car', {
@@ -362,48 +424,22 @@ function setObjectCar_rect() {
 
 //-----------------------------------------------------------------------
 
-function setObjectCar() {
-	map.addSource('car', {
-		type: 'image',
-		url: 'https://docs.mapbox.com/mapbox-gl-js/assets/radar0.gif',
-		coordinates: [
-			[0, 0],
-			[0, 0],
-			[0, 0],
-			[0, 0]
-		]
-	});
-	map.addLayer({
-		id: 'car-layer',
-		'type': 'raster',
-		'source': 'car',
-		'paint': {
-			'raster-fade-duration': 0
-		},
-		'icon-rotate': 35
-	});
-
-	function onMove(e) {
-		var coords = e.lngLat;
-
-		canvas.style.cursor = 'grabbing';
-
-		var coordinates = map.getSource('car').coordinates;
-		coordinates = [
-			[coords.lng, coords.lat],
-			[coords.lng + .0, coords.lat + .0004],
-			[coords.lng + .0004, coords.lat + .0004],
-			[coords.lng + .0014, coords.lat + .0]
-			];
-		map.getSource('car').setCoordinates(coordinates);
-	}
-
+function setObjectBus() {
 	function onClick(e) {
-		map.off('mousemove', onMove);
+		canvas.style.cursor = '';
+
+		map.off('mousemove', onMoveAreaObject);
 		map.off('click', onClick);
 	}
 
-	map.on('mousemove', onMove);
+	pushAreaObject('bus', {
+		top: 0.0002,
+		left: 0,
+		right: 0.0001,
+		bottom: 0,
+	});
+
+	map.on('mousemove', onMoveAreaObject);
 	map.on('click', onClick);
 }
 
