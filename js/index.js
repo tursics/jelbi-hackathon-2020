@@ -109,6 +109,11 @@ function addMapControls() {
 		html: '<i class="fas fa-vector-square fa-lg"></i>',
 		eventHandler: setObjectLine
 	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Ein Auto einfügen',
+		html: '<i class="fas fa-car-side fa-lg"></i>',
+		eventHandler: setObjectCar
+	}), 'top-right');
 }
 
 //-----------------------------------------------------------------------
@@ -187,6 +192,21 @@ var linestring = {
 		'coordinates': []
 	}
 };
+var carPolygon = {
+	'type': 'FeatureCollection',
+	'features': [
+		{
+			'type': 'Feature',
+			'geometry': {
+				'type': 'Polygon',
+				'coordinates': [[]]
+			},
+			'properties': {
+				'name': 'area1'
+			}
+		}
+	]
+};
 
 function setObjectPoint() {
 	map.addSource('point', {
@@ -250,6 +270,53 @@ function setObjectPoint() {
 		map.on('touchmove', onMove);
 		map.once('touchend', onUp);
 	});
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectCar() {
+	map.addSource('car', {
+		'type': 'geojson',
+		'data': carPolygon
+	});
+
+	map.addLayer({
+		'id': 'car',
+		'type': 'fill',
+		'source': 'car',
+		layout: {
+//			'line-cap': 'round',
+//			'line-join': 'round'
+		},
+		paint: {
+			'fill-color': '#3887be',
+//			'line-color': '#3887be',
+//			'line-width': 2.5
+		}
+	});
+
+	function onMove(e) {
+		var coords = e.lngLat;
+
+		canvas.style.cursor = 'grabbing';
+
+		carPolygon.features[0].geometry.coordinates = [[
+			[coords.lng, coords.lat],
+			[coords.lng + .0, coords.lat + .0001],
+			[coords.lng + .0001, coords.lat + .0001],
+			[coords.lng + .0001, coords.lat + .0],
+			[coords.lng, coords.lat]
+			]];
+		map.getSource('car').setData(carPolygon);
+	}
+
+	function onClick(e) {
+		map.off('mousemove', onMove);
+		map.off('click', onClick);
+	}
+
+	map.on('mousemove', onMove);
+	map.on('click', onClick);
 }
 
 //-----------------------------------------------------------------------
