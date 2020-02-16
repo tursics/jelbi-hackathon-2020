@@ -86,33 +86,48 @@ class MapboxGLButtonControl {
 //-----------------------------------------------------------------------
 
 function addMapControls() {
+	map.addControl(new mapboxgl.FullscreenControl(), 'top-left');
 	map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 	map.addControl(new mapboxgl.GeolocateControl({
 		positionOptions: {
 			enableHighAccuracy: true
 		}
 	}), 'top-left');
-
-	map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
 		title: 'Automatisch drehen',
 		html: '<i class="fas fa-sync-alt fa-lg"></i>',
 		eventHandler: startRotateCamera
-	}), 'top-right');
+	}), 'top-left');
+
 	map.addControl(new MapboxGLButtonControl({
-		title: 'Einen Punkt einfügen',
-		html: '<i class="far fa-dot-circle fa-lg"></i>',
-		eventHandler: setObjectPoint
+		title: '',
+		html: 'Je nach Laune: gestalten oder gestalten lassen.',
+		className: 'nav-title',
+		eventHandler: nonFunctional
 	}), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
 		title: 'Eine Linie einfügen',
-		html: '<i class="fas fa-vector-square fa-lg"></i>',
-		eventHandler: setObjectLine
+		html: '<img src="assets/share-bike.png">',
+		className: 'nav-button',
+		eventHandler: setObjectPoint
 	}), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
 		title: 'Ein Auto einfügen',
-		html: '<i class="fas fa-car-side fa-lg"></i>',
+		html: '<img src="assets/share-motorbike.png">',
+		className: 'nav-button',
+		eventHandler: nonFunctional
+	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Ein Auto einfügen',
+		html: '<img src="assets/share-car.png">',
+		className: 'nav-button',
 		eventHandler: setObjectCar
+	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Ein Bärlkönig einfügen',
+		html: '<img src="assets/share-bus.png">',
+		className: 'nav-button',
+		eventHandler: setObjectCar_rect
 	}), 'top-right');
 }
 
@@ -140,7 +155,7 @@ function add3dBuilding() {
 		'type': 'fill-extrusion',
 		'minzoom': 15,
 		'paint': {
-			'fill-extrusion-color': '#ff0',
+			'fill-extrusion-color': '#ffe500',
 
 			// use an 'interpolate' expression to add a smooth transition effect to the
 			// buildings as the user zooms in
@@ -162,7 +177,7 @@ function add3dBuilding() {
 				15.05,
 				['get', 'min_height']
 			],
-			'fill-extrusion-opacity': 0.6
+			'fill-extrusion-opacity': 0.4
 		}
 	});
 }
@@ -192,20 +207,9 @@ var linestring = {
 		'coordinates': []
 	}
 };
-var carPolygon = {
+var areaPolygon = {
 	'type': 'FeatureCollection',
-	'features': [
-		{
-			'type': 'Feature',
-			'geometry': {
-				'type': 'Polygon',
-				'coordinates': [[]]
-			},
-			'properties': {
-				'name': 'area1'
-			}
-		}
-	]
+	'features': []
 };
 
 function setObjectPoint() {
@@ -274,48 +278,85 @@ function setObjectPoint() {
 
 //-----------------------------------------------------------------------
 
-function setObjectCar_old() {
-	map.addSource('car', {
+function initSourcesAndLayers() {
+	map.addSource('area', {
 		'type': 'geojson',
-		'data': carPolygon
+		'data': areaPolygon
 	});
 
 	map.addLayer({
-		'id': 'car',
-		'type': 'fill',
-		'source': 'car',
-		layout: {
-//			'line-cap': 'round',
-//			'line-join': 'round'
-		},
+		'id': 'area',
+		'type': 'fill-extrusion',
+		'minzoom': 15,
+		'source': 'area',
 		paint: {
-			'fill-color': '#3887be',
-//			'line-color': '#3887be',
-//			'line-width': 2.5
+			'fill-extrusion-color': '#ffe500',
+			'fill-extrusion-height': [
+				'interpolate',
+				['linear'],
+				['zoom'],
+				15,
+				0,
+				15.05,
+				0.5
+			],
+			'fill-extrusion-opacity': 1
+		},
+	});
+}
+
+//-----------------------------------------------------------------------
+
+function pushAreaObject(name, rect) {
+	areaPolygon.features.push({
+		'type': 'Feature',
+		'geometry': {
+			'type': 'Polygon',
+			'coordinates': [[]]
+		},
+		'properties': {
+			'name': name,
+			'baseRect': rect
 		}
 	});
+}
 
-	function onMove(e) {
-		var coords = e.lngLat;
+//-----------------------------------------------------------------------
 
-		canvas.style.cursor = 'grabbing';
+function onMoveAreaObject(e) {
+	var coords = e.lngLat,
+		idx = areaPolygon.features.length - 1,
+		rect = areaPolygon.features[idx].properties.baseRect;
 
-		carPolygon.features[0].geometry.coordinates = [[
-			[coords.lng, coords.lat],
-			[coords.lng + .0, coords.lat + .0001],
-			[coords.lng + .0001, coords.lat + .0001],
-			[coords.lng + .0001, coords.lat + .0],
-			[coords.lng, coords.lat]
-			]];
-		map.getSource('car').setData(carPolygon);
-	}
+	canvas.style.cursor = 'grabbing';
 
+	areaPolygon.features[idx].geometry.coordinates = [[
+		[coords.lng + rect.left, coords.lat + rect.top],
+		[coords.lng + rect.left, coords.lat + rect.bottom],
+		[coords.lng + rect.right, coords.lat + rect.bottom],
+		[coords.lng + rect.right, coords.lat + rect.top],
+		[coords.lng + rect.left, coords.lat + rect.top]
+		]];
+	map.getSource('area').setData(areaPolygon);
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectCar_rect() {
 	function onClick(e) {
-		map.off('mousemove', onMove);
+		canvas.style.cursor = '';
+		map.off('mousemove', onMoveAreaObject);
 		map.off('click', onClick);
 	}
 
-	map.on('mousemove', onMove);
+	pushAreaObject('car', {
+		top: 0.0001,
+		left: 0,
+		right: 0.0001,
+		bottom: 0,
+	});
+
+	map.on('mousemove', onMoveAreaObject);
 	map.on('click', onClick);
 }
 
@@ -338,7 +379,8 @@ function setObjectCar() {
 		'source': 'car',
 		'paint': {
 			'raster-fade-duration': 0
-		}
+		},
+		'icon-rotate': 35
 	});
 
 	function onMove(e) {
@@ -367,7 +409,66 @@ function setObjectCar() {
 
 //-----------------------------------------------------------------------
 
-function setObjectLine() {
+function unusedSetObjectSprite() {
+	map.loadImage(
+		'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png',
+		function(error, image) {
+			if (error) throw error;
+
+			map.addImage('cat', image);
+		});
+
+	map.addSource('car', {
+		'type': 'geojson',
+		'data': geojsonPoint
+	});
+
+	map.addLayer({
+		'id': 'car',
+		'type': 'symbol',
+		'source': 'car',
+		'layout': {
+			'icon-image': 'cat',
+			'icon-size': 0.25
+		}
+	});
+
+	function onMove(e) {
+		var coords = e.lngLat;
+
+		canvas.style.cursor = 'grabbing';
+
+		geojsonPoint.features[0].geometry.coordinates = [coords.lng, coords.lat];
+		map.getSource('car').setData(geojsonPoint);
+	}
+
+	function onRender() {
+		const scale = Math.pow(2, map.getZoom());
+
+		map.setLayoutProperty('car', 'icon-size', 1.0 * scale / 100000);
+//		geojsonPoint.features[0].geometry.coordinates = [coords.lng, coords.lat];
+//		map.getSource('car').setData(geojsonPoint);
+	}
+
+	function onClick(e) {
+		map.off('mousemove', onMove);
+		map.off('click', onClick);
+//		map.off('render', onRender);
+	}
+
+	map.on('mousemove', onMove);
+	map.on('click', onClick);
+	map.on('render', onRender);
+}
+
+//-----------------------------------------------------------------------
+
+function nonFunctional() {
+}
+
+//-----------------------------------------------------------------------
+
+function unusedSetObjectLine() {
 	map.addSource('geojson', {
 		'type': 'geojson',
 		'data': geojson
@@ -467,6 +568,7 @@ function setObjectLine() {
 map.on('load', function () {
 	'use strict';
 
+	initSourcesAndLayers();
 	addMapControls();
 	add3dBuilding();
 

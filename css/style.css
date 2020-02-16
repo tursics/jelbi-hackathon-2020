@@ -9,3 +9,25 @@ body {
 	bottom: 0;
 	width: 100%;
 }
+
+.nav-title {
+	background: #ffe500 !important;
+	font-size: 1.2em;
+	font-weight: 700;
+	height: 50px !important;
+	margin-bottom: -8px;
+	padding: 5px 10px 5px 10px !important;
+	width: auto !important;
+}
+
+.nav-button {
+	background: #ffe500 !important;
+	height: 50px !important;
+	margin-bottom: -8px;
+	width: 50px !important;
+}
+
+.nav-button img {
+	height: 40px;
+	width: 40px;
+}
