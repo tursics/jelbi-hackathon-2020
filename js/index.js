@@ -14,7 +14,7 @@ var map = new mapboxgl.Map({
 	style: 'mapbox://styles/mapbox/dark-v10', //streets-v11 outdoors-v11 light-v10 dark-v10 satellite-v9 satellite-streets-v11
 	center: mapCenter,
 	minZoom: 10,
-	maxZoom: 19,
+	maxZoom: 21,
 	zoom: 17,
 	pitch: 60,
 	hash: true,
@@ -134,6 +134,18 @@ function addMapControls() {
 		html: '',
 		className: 'nav-button',
 		eventHandler: setObjectJelbiSaeule
+	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Eine Wartehäuschen einfügen',
+		html: '',
+		className: 'nav-button',
+		eventHandler: setObjectWaitingHall
+	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Einen Überseecontainer einfügen',
+		html: '',
+		className: 'nav-button',
+		eventHandler: setObjectSeaShipping
 	}), 'top-right');
 }
 
@@ -476,7 +488,29 @@ function setObjectJelbiSaeule() {
 		left: 0,
 		right: 0.00003,
 		bottom: 0,
-	}, 5);
+	}, 6);
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectWaitingHall() {
+	setObjectGenerel('waitingHall', {
+		top: 0.00010,
+		left: 0,
+		right: 0.00005,
+		bottom: 0,
+	}, 4.5);
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectSeaShipping() {
+	setObjectGenerel('seaShipping', {
+		top: 0.00009,
+		left: 0,
+		right: 0.00050,
+		bottom: 0,
+	}, 10);
 }
 
 //-----------------------------------------------------------------------
