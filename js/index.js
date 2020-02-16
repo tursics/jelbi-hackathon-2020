@@ -131,7 +131,7 @@ function addMapControls() {
 	}), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
 		title: 'Eine Jelbi-Säule einfügen',
-		html: '',
+		html: '<img src="assets/share-jelbisaeule.png">',
 		className: 'nav-button',
 		eventHandler: setObjectJelbiSaeule
 	}), 'top-right');
