@@ -129,6 +129,12 @@ function addMapControls() {
 		className: 'nav-button',
 		eventHandler: setObjectBus
 	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Eine Jelbi-Säule einfügen',
+		html: '',
+		className: 'nav-button',
+		eventHandler: setObjectJelbiSaeule
+	}), 'top-right');
 }
 
 //-----------------------------------------------------------------------
@@ -298,7 +304,7 @@ function initSourcesAndLayers() {
 				15,
 				0,
 				15.05,
-				0.5
+				['get', 'height']
 			],
 			'fill-extrusion-opacity': 1
 		},
@@ -307,7 +313,7 @@ function initSourcesAndLayers() {
 
 //-----------------------------------------------------------------------
 
-function pushAreaObject(name, rect) {
+function pushAreaObject(name, rect, height) {
 	var x = Math.abs(rect.left - rect.right);
 	var y = Math.abs(rect.top - rect.bottom);
 	var min = Math.min(x, y);
@@ -324,6 +330,7 @@ function pushAreaObject(name, rect) {
 			'name': name,
 			'imageName': imageName,
 			'baseRect': rect,
+			'height': height,
 			'imageRect': {
 				top: rect.top - (y - min / 2) / 2,
 				left: rect.left + (x - min / 2) / 2,
@@ -400,7 +407,7 @@ function onMouseLeaveAreaObject() {
 
 //-----------------------------------------------------------------------
 
-function setObjectGenerel(name, rect) {
+function setObjectGenerel(name, rect, height) {
 	function onClick(e) {
 		canvas.style.cursor = '';
 
@@ -411,7 +418,7 @@ function setObjectGenerel(name, rect) {
 //		map.on('mouseleave', 'area', onMouseLeaveAreaObject);
 	}
 
-	pushAreaObject(name, rect);
+	pushAreaObject(name, rect, height);
 
 	map.on('mousemove', onMoveAreaObject);
 	map.on('click', onClick);
@@ -425,7 +432,7 @@ function setObjectBike() {
 		left: 0,
 		right: 0.00001,
 		bottom: 0,
-	});
+	}, .5);
 }
 
 //-----------------------------------------------------------------------
@@ -436,7 +443,7 @@ function setObjectMotorBike() {
 		left: 0,
 		right: 0.00007,
 		bottom: 0,
-	});
+	}, .5);
 }
 
 //-----------------------------------------------------------------------
@@ -447,7 +454,7 @@ function setObjectCar() {
 		left: 0,
 		right: 0.00008,
 		bottom: 0,
-	});
+	}, .5);
 }
 
 //-----------------------------------------------------------------------
@@ -458,7 +465,18 @@ function setObjectBus() {
 		left: 0,
 		right: 0.0002,
 		bottom: 0,
-	});
+	}, .5);
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectJelbiSaeule() {
+	setObjectGenerel('jelbiSaeule', {
+		top: 0.00002,
+		left: 0,
+		right: 0.00003,
+		bottom: 0,
+	}, 5);
 }
 
 //-----------------------------------------------------------------------
