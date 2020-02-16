@@ -274,7 +274,7 @@ function setObjectPoint() {
 
 //-----------------------------------------------------------------------
 
-function setObjectCar() {
+function setObjectCar_old() {
 	map.addSource('car', {
 		'type': 'geojson',
 		'data': carPolygon
@@ -308,6 +308,52 @@ function setObjectCar() {
 			[coords.lng, coords.lat]
 			]];
 		map.getSource('car').setData(carPolygon);
+	}
+
+	function onClick(e) {
+		map.off('mousemove', onMove);
+		map.off('click', onClick);
+	}
+
+	map.on('mousemove', onMove);
+	map.on('click', onClick);
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectCar() {
+	map.addSource('car', {
+		type: 'image',
+		url: 'https://docs.mapbox.com/mapbox-gl-js/assets/radar0.gif',
+		coordinates: [
+			[0, 0],
+			[0, 0],
+			[0, 0],
+			[0, 0]
+		]
+	});
+	map.addLayer({
+		id: 'car-layer',
+		'type': 'raster',
+		'source': 'car',
+		'paint': {
+			'raster-fade-duration': 0
+		}
+	});
+
+	function onMove(e) {
+		var coords = e.lngLat;
+
+		canvas.style.cursor = 'grabbing';
+
+		var coordinates = map.getSource('car').coordinates;
+		coordinates = [
+			[coords.lng, coords.lat],
+			[coords.lng + .0, coords.lat + .0004],
+			[coords.lng + .0004, coords.lat + .0004],
+			[coords.lng + .0014, coords.lat + .0]
+			];
+		map.getSource('car').setCoordinates(coordinates);
 	}
 
 	function onClick(e) {
