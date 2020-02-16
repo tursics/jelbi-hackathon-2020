@@ -106,16 +106,16 @@ function addMapControls() {
 		eventHandler: nonFunctional
 	}), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
-		title: 'Eine Linie einfügen',
+		title: 'Ein Fahrrad einfügen',
 		html: '<img src="assets/share-bike.png">',
 		className: 'nav-button',
-		eventHandler: setObjectPoint
+		eventHandler: setObjectBike
 	}), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
-		title: 'Ein Auto einfügen',
+		title: 'Ein Moped einfügen',
 		html: '<img src="assets/share-motorbike.png">',
 		className: 'nav-button',
-		eventHandler: nonFunctional
+		eventHandler: setObjectMotorBike
 	}), 'top-right');
 	map.addControl(new MapboxGLButtonControl({
 		title: 'Ein Auto einfügen',
@@ -400,7 +400,7 @@ function onMouseLeaveAreaObject() {
 
 //-----------------------------------------------------------------------
 
-function setObjectCar() {
+function setObjectGenerel(name, rect) {
 	function onClick(e) {
 		canvas.style.cursor = '';
 
@@ -411,12 +411,7 @@ function setObjectCar() {
 //		map.on('mouseleave', 'area', onMouseLeaveAreaObject);
 	}
 
-	pushAreaObject('car', {
-		top: 0.0001,
-		left: 0,
-		right: 0.0001,
-		bottom: 0,
-	});
+	pushAreaObject(name, rect);
 
 	map.on('mousemove', onMoveAreaObject);
 	map.on('click', onClick);
@@ -424,23 +419,46 @@ function setObjectCar() {
 
 //-----------------------------------------------------------------------
 
-function setObjectBus() {
-	function onClick(e) {
-		canvas.style.cursor = '';
-
-		map.off('mousemove', onMoveAreaObject);
-		map.off('click', onClick);
-	}
-
-	pushAreaObject('bus', {
-		top: 0.0002,
+function setObjectBike() {
+	setObjectGenerel('bike', {
+		top: 0.00003,
 		left: 0,
-		right: 0.0001,
+		right: 0.00001,
 		bottom: 0,
 	});
+}
 
-	map.on('mousemove', onMoveAreaObject);
-	map.on('click', onClick);
+//-----------------------------------------------------------------------
+
+function setObjectMotorBike() {
+	setObjectGenerel('motorbike', {
+		top: 0.00003,
+		left: 0,
+		right: 0.00007,
+		bottom: 0,
+	});
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectCar() {
+	setObjectGenerel('car', {
+		top: 0.00008,
+		left: 0,
+		right: 0.00008,
+		bottom: 0,
+	});
+}
+
+//-----------------------------------------------------------------------
+
+function setObjectBus() {
+	setObjectGenerel('bus', {
+		top: 0.0001,
+		left: 0,
+		right: 0.0002,
+		bottom: 0,
+	});
 }
 
 //-----------------------------------------------------------------------
