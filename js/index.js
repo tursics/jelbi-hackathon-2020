@@ -99,6 +99,16 @@ function addMapControls() {
 		html: '<i class="fas fa-sync-alt fa-lg"></i>',
 		eventHandler: startRotateCamera
 	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Einen Punkt einfügen',
+		html: '<i class="far fa-dot-circle fa-lg"></i>',
+		eventHandler: setObjectPoint
+	}), 'top-right');
+	map.addControl(new MapboxGLButtonControl({
+		title: 'Eine Linie einfügen',
+		html: '<i class="fas fa-vector-square fa-lg"></i>',
+		eventHandler: setObjectLine
+	}), 'top-right');
 }
 
 //-----------------------------------------------------------------------
@@ -166,8 +176,19 @@ var geojsonPoint = {
 		}
 	]
 };
+var geojson = {
+	'type': 'FeatureCollection',
+	'features': []
+};
+var linestring = {
+	'type': 'Feature',
+	'geometry': {
+		'type': 'LineString',
+		'coordinates': []
+	}
+};
 
-function addDraggablePoint() {
+function setObjectPoint() {
 	map.addSource('point', {
 		'type': 'geojson',
 		'data': geojsonPoint
@@ -233,12 +254,109 @@ function addDraggablePoint() {
 
 //-----------------------------------------------------------------------
 
+function setObjectLine() {
+	map.addSource('geojson', {
+		'type': 'geojson',
+		'data': geojson
+	});
+
+	map.addLayer({
+		id: 'measure-points',
+		type: 'circle',
+		source: 'geojson',
+		paint: {
+			'circle-radius': 5,
+			'circle-color': '#fff'
+		},
+		filter: ['in', '$type', 'Point']
+	});
+	map.addLayer({
+		id: 'measure-lines',
+		type: 'line',
+		source: 'geojson',
+		layout: {
+			'line-cap': 'round',
+			'line-join': 'round'
+		},
+		paint: {
+			'line-color': '#fff',
+			'line-width': 2.5
+		},
+		filter: ['in', '$type', 'LineString']
+	});
+
+	function onMove(e) {
+		var features = map.queryRenderedFeatures(e.point, {
+			layers: ['measure-points']
+		});
+		// UI indicator for clicking/hovering a point on the map
+		canvas.style.cursor = features.length
+			? 'pointer'
+		: 'crosshair';
+	};
+
+	function onClick(e) {
+		var features = map.queryRenderedFeatures(e.point, {
+			layers: ['measure-points']
+		});
+
+		// Remove the linestring from the group
+		// So we can redraw it based on the points collection
+		if (geojson.features.length > 1) geojson.features.pop();
+
+		// If a feature was clicked, remove it from the map
+		if (features.length) {
+			var id = features[0].properties.id;
+			geojson.features = geojson.features.filter(function(point) {
+				return point.properties.id !== id;
+			});
+		} else {
+			var point = {
+				'type': 'Feature',
+				'geometry': {
+					'type': 'Point',
+					'coordinates': [e.lngLat.lng, e.lngLat.lat]
+				},
+				'properties': {
+					'id': String(new Date().getTime())
+				}
+			};
+
+			geojson.features.push(point);
+		}
+
+		if (geojson.features.length > 1) {
+			linestring.geometry.coordinates = geojson.features.map(function(
+				point
+			) {
+				return point.geometry.coordinates;
+			});
+
+			geojson.features.push(linestring);
+		}
+
+		map.getSource('geojson').setData(geojson);
+
+		if (geojson.features.length > 4) {
+			map.off('mousemove', onMove);
+			map.off('click', onClick);
+
+			canvas.style.cursor = '';
+		}
+	}
+
+	map.on('mousemove', onMove);
+	map.on('click', onClick);
+}
+
+//-----------------------------------------------------------------------
+
 map.on('load', function () {
 	'use strict';
 
 	addMapControls();
 	add3dBuilding();
-	addDraggablePoint();
+
 });
 
 //-----------------------------------------------------------------------
