@@ -483,7 +483,7 @@ function setObjectBus() {
 //-----------------------------------------------------------------------
 
 function setObjectJelbiSaeule() {
-	setObjectGenerel('jelbiSaeule', {
+	setObjectGenerel('jelbisaeule', {
 		top: 0.00002,
 		left: 0,
 		right: 0.00003,
@@ -494,7 +494,7 @@ function setObjectJelbiSaeule() {
 //-----------------------------------------------------------------------
 
 function setObjectWaitingHall() {
-	setObjectGenerel('waitingHall', {
+	setObjectGenerel('waitinghall', {
 		top: 0.00010,
 		left: 0,
 		right: 0.00005,
@@ -505,7 +505,7 @@ function setObjectWaitingHall() {
 //-----------------------------------------------------------------------
 
 function setObjectSeaShipping() {
-	setObjectGenerel('seaShipping', {
+	setObjectGenerel('seashipping', {
 		top: 0.00009,
 		left: 0,
 		right: 0.00050,
